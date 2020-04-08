@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -53,6 +54,9 @@ public class PriceService {
                 updated = true;
             }
             return updated;
+        } catch (NoSuchElementException ex) {
+            log.debug("description for product id ${} does not exist",id);
+            return false;
         } catch (Exception ex) {
             log.error("Updating price for product id ${} with exception ${}",id,ex);
             throw new RuntimeException("Price details are not valid", ex);

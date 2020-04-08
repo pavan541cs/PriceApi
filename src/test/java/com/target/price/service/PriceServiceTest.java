@@ -13,9 +13,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static  org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -84,15 +86,31 @@ public class PriceServiceTest {
         verify(priceRepository, times(1)).save(Mockito.any(Product.class));
     }
 
-    @Test(expected = Exception.class)
-    public void updateVehicleByIdNotFound() throws Exception {
+    @Test
+    public void updatePriceByIdNotFound() throws Exception {
         this.resetData();
 
-        doReturn(null).when(priceRepository).findById(Mockito.anyString());
+        doThrow(new NoSuchElementException()).when(priceRepository).findById(Mockito.anyString());
 
-        priceService.updateById(product.getProduct_id(), product);
+        boolean result = priceService.updateById(product.getProduct_id(), product);
+
+        assertFalse(result);
         verify(priceRepository, times(1)).findById(Mockito.anyString());
         verify(priceRepository, times(0)).save(Mockito.any(Product.class));
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void updatePriceByIdException() throws Exception {
+        this.resetData();
+
+        Optional<Product> returnProduct = Optional.of(product);
+        doReturn(returnProduct).when(priceRepository).findById(Mockito.anyString());
+        doThrow(new RuntimeException()).when(priceRepository).save(product);
+
+        priceService.updateById(product.getProduct_id(), product);
+
+        verify(priceRepository, times(1)).findById(Mockito.anyString());
+        verify(priceRepository, times(1)).save(Mockito.any(Product.class));
     }
 
     private void resetData() {
